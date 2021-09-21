@@ -1,6 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import "./App.css";
 import axios from 'axios';
+
+//Based on: 
+//Repo => https://github.com/Musawirkhann/Nodejs_Mongodb_Express_Multer
+//Video => https://www.youtube.com/watch?v=JwGcP5RcgQg
 
 function Product() {
     const [name, setName] = useState();
@@ -9,33 +13,49 @@ function Product() {
     const [categoryId, setCategoryId] = useState();
     const [brandId, setBrandId] = useState();
     const [packingId, setPackingId] = useState();
-    const [image, setImage] = useState([]);
+    const [multipleFiles, setMultipleFiles] = useState([]);
 
-    const send = event => {
-        const data = new FormData();
-        data.append("name", name);
-        data.append("cost", cost);
-        data.append("capacity", capacity);
-        data.append("categoryId", categoryId);
-        data.append("brandId", brandId);
-        data.append("packingId", packingId);
-        data.append("image", image);
-        
-        // axios.post("https://pg-delsur.herokuapp.com/products", data)
-        axios.post("http://localhost:3001/products", data)
-          .then(res => console.log(res))
-          .catch(err => console.log(err));
-      };
-
-    const postMultipleFiles=(filelist) => {
-        let files = [];
-        for (var i=0; i<filelist.length; i++) {
-            files.push(filelist[i]);
-        }
-        console.log(files);
-        setImage(files);
-        console.log(image);
+    const MultipleFileChange = (e) => {
+      setMultipleFiles(e.target.files);
     }
+
+    const getMultipleFilesList = async () => {
+      try {
+          const fileslist = [];
+          setMultipleFiles(fileslist);
+          console.log(multipleFiles);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+
+    const multipleFilesUpload = async (data) => {
+      try {
+          // await axios.post("http://localhost:3001/products", data);
+          await axios.post("https://pg-delsur.herokuapp.com/products", data);
+      } catch (error) {
+          throw error;
+      }
+    }
+
+    const UploadMultipleFiles = async () => {
+      const formData = new FormData();
+      formData.append('name', name);
+      formData.append('cost', cost);
+      formData.append('capacity', capacity);
+      formData.append('categoryId', categoryId);
+      formData.append('brandId', brandId);
+      formData.append('packingId', packingId);
+      for (let i = 0; i < multipleFiles.length; i++) {
+          formData.append('image', multipleFiles[i]);                      
+      }
+      await multipleFilesUpload(formData);
+      getMultipleFilesList();
+    }
+
+    useEffect(() => {
+      getMultipleFilesList();
+    }, []);
 
     return (
         <div className="App">
@@ -108,20 +128,16 @@ function Product() {
               />
             </div>
             <div className="flex">
-              <label htmlFor="file">Images (max 4 files)</label>
+              <label htmlFor="file">Images (4 files max)</label>
               <input
                 type="file"
                 id="image" 
                 multiple 
-                onChange={event => {
-                  const filelist = event.target.files;
-                  console.log(filelist)
-                  postMultipleFiles(filelist);
-                }}
+                onChange={(e) => MultipleFileChange(e)}
               />
             </div>
           </form>
-          <button onClick={send}>Send</button>
+          <button onClick={() => UploadMultipleFiles()}>Send</button>
         </header>
         </div>
     );

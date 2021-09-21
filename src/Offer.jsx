@@ -19,6 +19,7 @@ function Offer() {
         data.append("until", until);
         data.append("discount", discount);
         
+        // axios.post("http://localhost:3001/offers", data)
         axios.post("https://pg-delsur.herokuapp.com/offers", data)
           .then(res => console.log(res))
           .catch(err => console.log(err));
